@@ -558,7 +558,7 @@ function bars(arr){
 const params = new URLSearchParams(location.search);
 const qrLoc = db.list('locs').some(l => l.id === params.get('loc')) ? params.get('loc') : null;
 const S = { view: params.get('view') === 'public' ? 'public' : 'report', role: null, selected: null,
-            loc: qrLoc, photo: null, lastId: null, fStatus: 'All', fCat: 'All', pf: 'All', pq: '' };
+            loc: qrLoc, photo: null, photoName: '', lastId: null, fStatus: 'All', fCat: 'All', pf: 'All', pq: '' };
 const can = {
   status: () => roleCan(S.role, 'status'),
   manage: () => roleCan(S.role, 'manage'),
@@ -799,8 +799,8 @@ function viewReport(){
         <button type="button" class="btn ghost" id="cameraBtn">📷 Take photo</button>
         <button type="button" class="btn ghost" id="galleryBtn">🖼️ Choose photo</button>
       </div>
-      <div id="photoName" class="hint" style="margin-top:8px">No photo selected.</div>
-      <div id="prev"></div>
+      <div id="photoName" class="hint" style="margin-top:8px">${S.photo ? esc(S.photoName || 'Photo selected') : 'No photo selected.'}</div>
+      <div id="prev">${S.photo ? `<img class="photo-prev" src="${esc(S.photo)}" alt="Preview of your photo">` : ''}</div>
       <div class="hint">Photos are stored securely in Supabase Storage. Staff/admin/principal can view them when authorized.</div>
     </div>
     <div>
@@ -1096,9 +1096,11 @@ function bindReport(){
         return;
       }
       S.photo = data;
-      $('#photoName').textContent = f.name || 'Photo selected';
-      $('#prev').innerHTML = `<img class="photo-prev" src="${data}" alt="Preview of your photo">`;
-      $('#err').textContent = '';
+      S.photoName = f.name || 'Photo selected';
+      const photoName = $('#photoName'), preview = $('#prev'), error = $('#err');
+      if (photoName) photoName.textContent = S.photoName;
+      if (preview) preview.innerHTML = `<img class="photo-prev" src="${data}" alt="Preview of your photo">`;
+      if (error) error.textContent = '';
     });
   };
 
@@ -1204,6 +1206,7 @@ function bindReport(){
     if(reportClockTimer) { clearInterval(reportClockTimer); reportClockTimer=null; }
     S.lastId = issue.id;
     S.photo = null;
+    S.photoName = '';
     go('done');
   };
 }
